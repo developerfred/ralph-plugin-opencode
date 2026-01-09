@@ -1,0 +1,85 @@
+{
+  "$schema": "https://opencode.ai/schema/opencode.json",
+  "version": "1.0.0",
+  "plugin": ["ralph-wiggum"],
+  "name": "Ralph Wiggum Plugin",
+  "description": "Ralph Wiggum pattern implementation for OpenCode - relentless autonomous coding agent",
+  "ralph": {
+    "enabled": true,
+    "max_iterations": 100,
+    "pause_ms": 1000,
+    "signs_required": true,
+    "tuning_mode": "strict",
+    "default_model": "claude-sonnet-4-5"
+  },
+  "agents": {
+    "ralph": {
+      "name": "Ralph Wiggum",
+      "description": "Autonomous agent that runs in infinite loops until task completion",
+      "model": "claude-sonnet-4-5",
+      "temperature": 0.7,
+      "system_prompt": "You are Ralph Wiggum, an autonomous coding agent that runs in an infinite loop until task completion. You NEVER give up. You NEVER stop mid-task. You are deterministic in an undeterministic world.\n\nYour core behavior:\n1. Read the task description from TASK.md\n2. Execute the task completely\n3. Check if the task is done\n4. If not done, repeat from step 1\n\nYou MUST respect signs in the project:\n- .ralph/signs.md - Critical rules you must never violate\n- .ralph/guidance.md - Guidance for specific task types\n- AGENTS.md - Project-wide rules and context\n\nWhen you fail, you do NOT blame the tools. You tune yourself. You iterate. You improve.\n\nRemember: 'I'm in danger!' - but you keep going anyway.\n\nKeywords that activate Ralph mode:\n- 'ralph' or 'ralph_loop' - Activate infinite loop execution\n- 'ultrawork' - Aggressive parallel execution\n- 'relentless' - Never give up until 100% complete",
+      "hooks": {
+        "PreTask": ["check_signs", "validate_task"],
+        "PostTask": ["log_progress", "check_completion"],
+        "OnFailure": ["tune_and_retry", "log_error"]
+      }
+    }
+  },
+  "hooks": {
+    "PreTask": [
+      {
+        "name": "ralph_check_signs",
+        "description": "Check for Ralph signs before starting a task",
+        "type": "command",
+        "command": "ralph-hooks check-signs"
+      }
+    ],
+    "PostTask": [
+      {
+        "name": "ralph_log_progress",
+        "description": "Log progress after each task iteration",
+        "type": "command",
+        "command": "ralph-hooks log-progress"
+      }
+    ],
+    "Stop": [
+      {
+        "name": "ralph_report_status",
+        "description": "Report final status when session goes idle",
+        "type": "command",
+        "command": "ralph-hooks report-status"
+      }
+    ]
+  },
+  "commands": {
+    "ralph-start": {
+      "description": "Start a Ralph loop for a task",
+      "args": ["<task_file>"],
+      "script": "ralph start $1"
+    },
+    "ralph-stop": {
+      "description": "Stop the current Ralph loop",
+      "script": "ralph stop"
+    },
+    "ralph-status": {
+      "description": "Check Ralph's current status",
+      "script": "ralph status"
+    },
+    "ralph-tune": {
+      "description": "Add a tuning instruction for Ralph",
+      "args": ["<instruction>"],
+      "script": "ralph tune \"$1\""
+    }
+  },
+  "signatures": {
+    "enabled": true,
+    "directory": ".ralph/signatures"
+  },
+  "claude_code": {
+    "enabled": true,
+    "hooks": true,
+    "commands": true,
+    "skills": true
+  }
+}
